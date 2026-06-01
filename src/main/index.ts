@@ -1,9 +1,9 @@
-import { app, protocol, net, Tray, BrowserWindow, ipcMain, screen, Menu } from 'electron'
+import { app, protocol, net, nativeImage, Tray, BrowserWindow, ipcMain, screen, Menu } from 'electron'
 import { pathToFileURL } from 'url'
+import { join } from 'path'
 import { createControlWindow } from './windows/controlWindow'
 import { createBubbleWindow } from './windows/bubbleWindow'
-import { registerRecordingHandlers } from './ipc/handlers'
-import { createTrayIcon } from './utils/trayIcon'
+import { registerRecordingHandlers, setBubbleWindowRef } from './ipc/handlers'
 
 // Must be called before app.whenReady() — Chromium registers the scheme at startup
 protocol.registerSchemesAsPrivileged([
@@ -66,14 +66,34 @@ app.whenReady().then(() => {
   })
 
   registerRecordingHandlers()
-  createBubbleWindow()
+  const bubbleWin = createBubbleWindow()
+  setBubbleWindowRef(bubbleWin)
+  // Ensure the bubble is visible on all macOS Spaces and over full-screen apps.
+  // Without this, alwaysOnTop alone is not enough — the window can vanish on space switch.
+  bubbleWin.setVisibleOnAllWorkspaces(true, { visibleOnFullScreen: true })
+  bubbleWin.show()
 
   controlWindow = createControlWindow()
 
-  tray = new Tray(createTrayIcon())
+  const resourcesPath = app.isPackaged
+    ? process.resourcesPath
+    : join(__dirname, '../../resources')
+
+  const trayImage = nativeImage.createEmpty()
+  trayImage.addRepresentation({
+    scaleFactor: 1,
+    dataURL: nativeImage.createFromPath(join(resourcesPath, 'trayIconTemplate.png')).toDataURL(),
+  })
+  trayImage.addRepresentation({
+    scaleFactor: 2,
+    dataURL: nativeImage.createFromPath(join(resourcesPath, 'trayIconTemplate-2x.png')).toDataURL(),
+  })
+  trayImage.setTemplateImage(true)
+
+  tray = new Tray(trayImage)
   tray.setToolTip('Bubble')
 
-  // Left-click: toggle the control panel
+  // Left-click: toggle the control panel; always keep the bubble visible
   tray.on('click', () => {
     if (!controlWindow) return
     if (controlWindow.isVisible()) {
@@ -83,6 +103,7 @@ app.whenReady().then(() => {
       controlWindow.show()
       controlWindow.focus()
     }
+    if (!bubbleWin.isVisible()) bubbleWin.show()
   })
 
   // Right-click: context menu (rebuilt fresh each time to reflect latest login-item state)

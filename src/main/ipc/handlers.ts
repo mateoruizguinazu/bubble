@@ -1,4 +1,4 @@
-import { ipcMain, desktopCapturer, systemPreferences, shell } from 'electron'
+import { ipcMain, desktopCapturer, systemPreferences, shell, dialog, BrowserWindow } from 'electron'
 import { createWriteStream, WriteStream } from 'fs'
 import { join } from 'path'
 import { tmpdir } from 'os'
@@ -6,6 +6,13 @@ import { transcode, TranscodeOptions } from '../ffmpeg/transcode'
 
 let activeStream: WriteStream | null = null
 let activePath: string | null = null
+let bubbleWindowRef: BrowserWindow | null = null
+// null = camera off; '' = system default; any other string = specific deviceId
+let activeCameraDeviceId: string | null = ''
+
+export function setBubbleWindowRef(win: BrowserWindow): void {
+  bubbleWindowRef = win
+}
 
 export function registerRecordingHandlers(): void {
   ipcMain.handle('sources:get', async () => {
@@ -69,4 +76,24 @@ export function registerRecordingHandlers(): void {
   ipcMain.on('shell:show-in-folder', (_event, filePath: string) => {
     shell.showItemInFolder(filePath)
   })
+
+  // Fire-and-forget — deep-links directly to the Screen Recording privacy pane
+  ipcMain.on('settings:open-screen-recording', () => {
+    shell.openExternal('x-apple.systempreferences:com.apple.preference.security?Privacy_ScreenCapture')
+  })
+
+  // Returns the path chosen by the user, or null if they cancelled
+  ipcMain.handle('dialog:select-directory', async (_event) => {
+    const result = await dialog.showOpenDialog({ properties: ['openDirectory'] })
+    return result.canceled ? null : (result.filePaths[0] ?? null)
+  })
+
+  // Stores the active camera device ID and forwards it to the bubble window
+  ipcMain.on('camera:set-config', (_event, deviceId: string | null) => {
+    activeCameraDeviceId = deviceId
+    bubbleWindowRef?.webContents.send('camera:configure', deviceId)
+  })
+
+  // Bubble window queries this on mount so it knows which camera to open
+  ipcMain.handle('camera:get-config', () => activeCameraDeviceId)
 }

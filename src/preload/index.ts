@@ -20,4 +20,13 @@ contextBridge.exposeInMainWorld('electronAPI', {
 
   showInFinder: (filePath: string): void =>
     ipcRenderer.send('shell:show-in-folder', filePath),
+
+  openScreenRecordingSettings: (): void =>
+    ipcRenderer.send('settings:open-screen-recording'),
+
+  selectDirectory: (): Promise<string | null> =>
+    ipcRenderer.invoke('dialog:select-directory'),
+
+  setCameraConfig: (deviceId: string | null): void =>
+    ipcRenderer.send('camera:set-config', deviceId),
 })

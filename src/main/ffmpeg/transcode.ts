@@ -4,11 +4,17 @@ import ffmpegStatic from 'ffmpeg-static'
 import { join, basename } from 'path'
 import { unlink } from 'fs/promises'
 
+export type QualityProfile = 'high' | 'medium' | 'low'
+
 export interface TranscodeOptions {
   inputPath: string
-  startTime?: number // seconds; output option — frame-accurate
-  endTime?: number   // seconds; output option — relative to input timeline
+  startTime?: number        // seconds; output option — frame-accurate
+  endTime?: number          // seconds; output option — relative to input timeline
+  qualityProfile?: QualityProfile
+  savePath?: string         // output directory; defaults to ~/Downloads when omitted
 }
+
+const CRF: Record<QualityProfile, number> = { high: 16, medium: 22, low: 28 }
 
 function resolveFFmpegPath(): string {
   const raw = ffmpegStatic
@@ -17,12 +23,14 @@ function resolveFFmpegPath(): string {
   return app.isPackaged ? raw.replace('app.asar', 'app.asar.unpacked') : raw
 }
 
-export async function transcode({ inputPath, startTime, endTime }: TranscodeOptions): Promise<string> {
+export async function transcode({ inputPath, startTime, endTime, qualityProfile, savePath }: TranscodeOptions): Promise<string> {
   const now = new Date()
   const pad = (n: number): string => String(n).padStart(2, '0')
   const date = `${now.getFullYear()}-${pad(now.getMonth() + 1)}-${pad(now.getDate())}`
   const time = `${pad(now.getHours())}.${pad(now.getMinutes())}.${pad(now.getSeconds())}`
-  const mp4Path = join(app.getPath('downloads'), `Bubble Recording - ${date} at ${time}.mp4`)
+  const outputDir = savePath || app.getPath('downloads')
+  const mp4Path = join(outputDir, `Bubble Recording - ${date} at ${time}.mp4`)
+  const crf = CRF[qualityProfile ?? 'medium']
 
   await new Promise<void>((resolve, reject) => {
     // Trim flags are placed as OUTPUT options for frame-accurate cutting.
@@ -43,7 +51,7 @@ export async function transcode({ inputPath, startTime, endTime }: TranscodeOpti
       .audioCodec('aac')
       .outputOptions([
         ...trimOpts,
-        '-crf 18',              // higher fidelity for text/UI subpixel clarity
+        `-crf ${crf}`,
         '-preset fast',
         '-movflags +faststart', // moov atom first — instant playback on Drive/browser
         '-pix_fmt yuv420p',     // QuickTime + browser compatibility

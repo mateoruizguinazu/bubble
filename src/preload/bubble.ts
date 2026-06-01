@@ -1,4 +1,10 @@
-import { contextBridge } from 'electron'
+import { contextBridge, ipcRenderer } from 'electron'
 
-// IPC surface for the bubble window — expanded in future steps
-contextBridge.exposeInMainWorld('electronAPI', {})
+contextBridge.exposeInMainWorld('electronAPI', {
+  getCameraConfig: (): Promise<string | null> =>
+    ipcRenderer.invoke('camera:get-config'),
+
+  onCameraConfigChange: (handler: (deviceId: string | null) => void): void => {
+    ipcRenderer.on('camera:configure', (_event, deviceId: string | null) => handler(deviceId))
+  },
+})

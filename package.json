@@ -1,6 +1,6 @@
 {
   "name": "bubble",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Local-first screen recorder for macOS",
   "main": "./out/main/index.js",
   "scripts": {
@@ -35,11 +35,19 @@
     "productName": "Bubble",
     "mac": {
       "category": "public.app-category.productivity",
+      "icon": "resources/icon.icns",
       "target": [
         { "target": "dmg", "arch": ["arm64", "x64"] },
         { "target": "dir", "arch": ["arm64", "x64"] }
       ]
     },
+    "extraResources": [
+      {
+        "from": "resources",
+        "to": ".",
+        "filter": ["trayIconTemplate.png", "trayIconTemplate-2x.png"]
+      }
+    ],
     "asarUnpack": [
       "node_modules/ffmpeg-static/**/*"
     ]

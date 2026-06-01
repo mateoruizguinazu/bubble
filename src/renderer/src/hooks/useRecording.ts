@@ -14,9 +14,15 @@ interface RecordingCallbacks {
   onError: (message: string, resetToSources: boolean) => void
 }
 
+export interface RecordingSettings {
+  source: ScreenSource
+  /** null = no mic; '' = system default; any other string = specific deviceId */
+  micDeviceId: string | null
+}
+
 export interface UseRecordingReturn {
   elapsed: number
-  beginCapture: (source: ScreenSource) => Promise<void>
+  beginCapture: (settings: RecordingSettings) => Promise<void>
   stopRecording: () => void
 }
 
@@ -50,7 +56,7 @@ export function useRecording(callbacks: RecordingCallbacks): UseRecordingReturn 
     recorderRef.current?.stop()
   }, [])
 
-  const beginCapture = useCallback(async (source: ScreenSource): Promise<void> => {
+  const beginCapture = useCallback(async ({ source, micDeviceId }: RecordingSettings): Promise<void> => {
     try {
       const screenStream = await navigator.mediaDevices.getUserMedia({
         audio: false,
@@ -62,10 +68,14 @@ export function useRecording(callbacks: RecordingCallbacks): UseRecordingReturn 
         } as unknown as MediaTrackConstraints,
       })
 
-      const micStream = await navigator.mediaDevices.getUserMedia({
-        audio: true,
-        video: false,
-      })
+      let micStream: MediaStream | null = null
+      if (micDeviceId !== null) {
+        const audioConstraint: MediaStreamConstraints =
+          micDeviceId === ''
+            ? { audio: true, video: false }
+            : { audio: { deviceId: { exact: micDeviceId } }, video: false }
+        micStream = await navigator.mediaDevices.getUserMedia(audioConstraint)
+      }
 
       screenStreamRef.current = screenStream
       micStreamRef.current = micStream
@@ -74,7 +84,7 @@ export function useRecording(callbacks: RecordingCallbacks): UseRecordingReturn 
 
       const combined = new MediaStream([
         ...screenStream.getVideoTracks(),
-        ...micStream.getAudioTracks(),
+        ...(micStream?.getAudioTracks() ?? []),
       ])
 
       await window.electronAPI.startRecording()

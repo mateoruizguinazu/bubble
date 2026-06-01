@@ -7,9 +7,13 @@ export default defineConfig({
     plugins: [externalizeDepsPlugin()]
   },
   preload: {
-    input: {
-      index: resolve(__dirname, 'src/preload/index.ts'),
-      bubble: resolve(__dirname, 'src/preload/bubble.ts')
+    build: {
+      rollupOptions: {
+        input: {
+          index: resolve(__dirname, 'src/preload/index.ts'),
+          bubble: resolve(__dirname, 'src/preload/bubble.ts')
+        }
+      }
     },
     plugins: [externalizeDepsPlugin()]
   },

@@ -1,0 +1,34 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer utilities {
+  .drag-region {
+    -webkit-app-region: drag;
+  }
+}
+
+/*
+  Hard-pin bubble window dimensions at every DOM level.
+  Tailwind Preflight sets `video { height: auto }` which can fight
+  explicit h-full on the video element; the html/body/root constraints
+  below ensure nothing collapses the 160×160 circle.
+*/
+html,
+body {
+  width: 160px;
+  height: 160px;
+  overflow: hidden;
+  background: transparent !important;
+}
+
+#bubble-root {
+  width: 160px;
+  height: 160px;
+  overflow: hidden;
+}
+
+/* Override Preflight's `video { height: auto }` inside the bubble */
+#bubble-root video {
+  height: 100%;
+}

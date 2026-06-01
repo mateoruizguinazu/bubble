@@ -1,17 +1,20 @@
 import React, { useState, useEffect, useCallback } from 'react'
-import type { ScreenSource } from './types/electron'
+import type { ScreenSource, QualityProfile } from './types/electron'
 import { useRecording } from './hooks/useRecording'
+import type { RecordingConfig } from './components/SourcePicker'
 import SourcePicker from './components/SourcePicker'
 import PreviewTrim from './components/PreviewTrim'
+import PermissionScreen from './components/PermissionScreen'
 
-// loading  → sources      (getSources resolves on mount)
-// sources  → recording    (user selects a source)
-// recording → saving      (Stop clicked — draining write stream)
-// saving   → previewing   (webm path received, video ready to preview)
-// previewing → compressing (Save & Compress clicked)
-// compressing → done      (FFmpeg resolves)
-// any error → sources     (with inline error message)
-type Status = 'loading' | 'sources' | 'recording' | 'saving' | 'previewing' | 'compressing' | 'done'
+// loading          → sources | permission-denied  (getSources resolves on mount)
+// permission-denied → loading                    (user clicks Check Again)
+// sources          → recording                   (user clicks Start Recording)
+// recording        → saving                      (Stop clicked — draining write stream)
+// saving           → previewing                  (webm path received, video ready to preview)
+// previewing       → compressing                 (Save & Compress clicked)
+// compressing      → done                        (FFmpeg resolves)
+// any error        → sources                     (with inline error message)
+type Status = 'loading' | 'sources' | 'permission-denied' | 'recording' | 'saving' | 'previewing' | 'compressing' | 'done'
 
 const formatTime = (s: number): string =>
   `${Math.floor(s / 60).toString().padStart(2, '0')}:${(s % 60).toString().padStart(2, '0')}`
@@ -36,6 +39,8 @@ export default function App(): JSX.Element {
   const [recordedElapsed, setRecordedElapsed] = useState(0)
   const [savedPath, setSavedPath] = useState('')
   const [error, setError] = useState('')
+  // Persisted from the pre-flight panel for use during the transcode step
+  const [savePath, setSavePath] = useState('')
 
   const loadSources = useCallback(async (): Promise<void> => {
     window.electronAPI.setSessionActive(false)
@@ -46,11 +51,17 @@ export default function App(): JSX.Element {
     try {
       const list = await window.electronAPI.getSources()
       setSources(list)
+      setStatus('sources')
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Could not load screen sources')
-      setSources([])
+      const message = err instanceof Error ? err.message : 'Could not load screen sources'
+      if (message.includes('permission denied') || message.includes('denied')) {
+        setStatus('permission-denied')
+      } else {
+        setError(message)
+        setSources([])
+        setStatus('sources')
+      }
     }
-    setStatus('sources')
   }, [])
 
   const { elapsed, beginCapture, stopRecording } = useRecording({
@@ -76,13 +87,22 @@ export default function App(): JSX.Element {
 
   useEffect(() => { loadSources() }, [loadSources])
 
-  const handleSaveAndCompress = async (opts: { startTime?: number; endTime?: number }): Promise<void> => {
+  const handleStart = (config: RecordingConfig): void => {
+    window.electronAPI.setCameraConfig(config.cameraDeviceId)
+    setSavePath(config.savePath)
+    beginCapture({ source: config.source, micDeviceId: config.micDeviceId })
+  }
+
+  const handleSaveAndCompress = async (opts: { startTime?: number; endTime?: number; qualityProfile: QualityProfile }): Promise<void> => {
     setStatus('compressing')
     setError('')
     try {
       const mp4Path = await window.electronAPI.transcodeRecording({
         inputPath: tempWebmPath,
-        ...opts,
+        startTime: opts.startTime,
+        endTime: opts.endTime,
+        savePath: savePath || undefined,
+        qualityProfile: opts.qualityProfile,
       })
       window.electronAPI.setSessionActive(false)
       setSavedPath(mp4Path)
@@ -106,12 +126,17 @@ export default function App(): JSX.Element {
         </div>
       )}
 
-      {/* ── Source Picker ─────────────────────────────────────── */}
+      {/* ── Permission Denied ────────────────────────────────── */}
+      {status === 'permission-denied' && (
+        <PermissionScreen onRetry={loadSources} />
+      )}
+
+      {/* ── Pre-flight Panel ──────────────────────────────────── */}
       {status === 'sources' && (
         <SourcePicker
           sources={sources}
           error={error}
-          onSelect={beginCapture}
+          onStart={handleStart}
           onRefresh={loadSources}
         />
       )}
@@ -127,7 +152,7 @@ export default function App(): JSX.Element {
           </div>
           <button
             onClick={stopRecording}
-            className="px-6 py-2.5 bg-zinc-800 hover:bg-zinc-700 active:bg-zinc-900 rounded-lg text-sm font-medium transition-colors"
+            className="px-6 py-2.5 bg-zinc-800 hover:bg-zinc-700 active:bg-zinc-900 rounded-xl text-sm font-medium transition-colors"
           >
             Stop Recording
           </button>
@@ -157,8 +182,8 @@ export default function App(): JSX.Element {
       {/* ── Done ────────────────────────────────────────────────── */}
       {status === 'done' && (
         <div className="flex flex-col items-center justify-center h-full gap-4 text-center px-6">
-          <div className="w-10 h-10 rounded-full bg-emerald-500/15 flex items-center justify-center">
-            <svg className="w-5 h-5 text-emerald-400" viewBox="0 0 20 20" fill="currentColor">
+          <div className="w-10 h-10 rounded-full bg-orange-500/15 flex items-center justify-center">
+            <svg className="w-5 h-5 text-orange-400" viewBox="0 0 20 20" fill="currentColor">
               <path
                 fillRule="evenodd"
                 d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
@@ -167,7 +192,7 @@ export default function App(): JSX.Element {
             </svg>
           </div>
           <div>
-            <p className="text-sm font-medium text-white">Saved to Downloads</p>
+            <p className="text-sm font-medium text-white">Saved successfully</p>
             <p className="font-mono text-[11px] text-zinc-500 max-w-[260px] leading-relaxed mt-1">
               {savedPath.split('/').pop()}
             </p>
@@ -181,7 +206,7 @@ export default function App(): JSX.Element {
             </button>
             <button
               onClick={() => window.electronAPI.showInFinder(savedPath)}
-              className="px-4 py-2 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl text-xs font-medium transition-colors"
+              className="px-4 py-2 bg-orange-600 hover:bg-orange-500 text-white rounded-xl text-xs font-medium transition-colors"
             >
               Open in Finder
             </button>

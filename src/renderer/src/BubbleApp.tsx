@@ -2,23 +2,52 @@ import React, { useEffect, useRef, useState } from 'react'
 
 export default function BubbleApp(): JSX.Element {
   const videoRef = useRef<HTMLVideoElement>(null)
+  const [cameraOff, setCameraOff] = useState(false)
   const [cameraError, setCameraError] = useState(false)
+  // Ref so the live-config handler always has the latest stream to stop
+  const activeStreamRef = useRef<MediaStream | null>(null)
+
+  const startCamera = async (deviceId: string | null): Promise<void> => {
+    // Stop whatever was running
+    activeStreamRef.current?.getTracks().forEach((t) => t.stop())
+    activeStreamRef.current = null
+    if (videoRef.current) videoRef.current.srcObject = null
+
+    if (deviceId === null) {
+      setCameraOff(true)
+      setCameraError(false)
+      return
+    }
+
+    setCameraOff(false)
+    setCameraError(false)
+
+    try {
+      const constraints: MediaStreamConstraints =
+        deviceId === ''
+          ? { video: true, audio: false }
+          : { video: { deviceId: { exact: deviceId } }, audio: false }
+      const stream = await navigator.mediaDevices.getUserMedia(constraints)
+      activeStreamRef.current = stream
+      if (videoRef.current) videoRef.current.srcObject = stream
+    } catch {
+      setCameraError(true)
+    }
+  }
 
   useEffect(() => {
-    let activeStream: MediaStream | null = null
+    // Read initial config from main process, then start the appropriate camera
+    const init = async (): Promise<void> => {
+      const deviceId = await window.electronAPI.getCameraConfig?.() ?? ''
+      await startCamera(deviceId)
+    }
+    init()
 
-    navigator.mediaDevices
-      .getUserMedia({ video: true, audio: false })
-      .then((stream) => {
-        activeStream = stream
-        if (videoRef.current) {
-          videoRef.current.srcObject = stream
-        }
-      })
-      .catch(() => setCameraError(true))
+    // Listen for live config changes (e.g. user changed camera during a session)
+    window.electronAPI.onCameraConfigChange?.(startCamera)
 
     return () => {
-      activeStream?.getTracks().forEach((t) => t.stop())
+      activeStreamRef.current?.getTracks().forEach((t) => t.stop())
       const video = videoRef.current
       if (video) video.srcObject = null
     }
@@ -26,7 +55,11 @@ export default function BubbleApp(): JSX.Element {
 
   return (
     <div className="w-40 h-40 rounded-full overflow-hidden bg-black relative ring-1 ring-white/30">
-      {cameraError ? (
+      {cameraOff ? (
+        <div className="w-full h-full flex items-center justify-center bg-zinc-950">
+          <p className="text-[10px] text-zinc-600 text-center px-4 leading-relaxed">Camera off</p>
+        </div>
+      ) : cameraError ? (
         <div className="w-full h-full flex items-center justify-center bg-zinc-900">
           <p className="text-[10px] text-zinc-600 text-center px-4 leading-relaxed">
             Camera unavailable

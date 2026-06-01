@@ -4,10 +4,14 @@ export interface ScreenSource {
   thumbnailDataUrl: string
 }
 
+export type QualityProfile = 'high' | 'medium' | 'low'
+
 export interface TranscodeOptions {
   inputPath: string
   startTime?: number
   endTime?: number
+  qualityProfile?: QualityProfile
+  savePath?: string
 }
 
 export interface ElectronAPI {
@@ -18,6 +22,12 @@ export interface ElectronAPI {
   transcodeRecording: (opts: TranscodeOptions) => Promise<string>
   setSessionActive: (active: boolean) => void
   showInFinder: (filePath: string) => void
+  openScreenRecordingSettings: () => void
+  selectDirectory: () => Promise<string | null>
+  setCameraConfig: (deviceId: string | null) => void
+  // Bubble-window only — optional so the control window's TS stays valid
+  getCameraConfig?: () => Promise<string | null>
+  onCameraConfigChange?: (handler: (deviceId: string | null) => void) => void
 }
 
 declare global {
