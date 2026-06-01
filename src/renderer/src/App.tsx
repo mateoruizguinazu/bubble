@@ -119,10 +119,10 @@ export default function App(): JSX.Element {
       {/* ── Recording ─────────────────────────────────────────── */}
       {status === 'recording' && (
         <div className="flex flex-col items-center justify-center h-full gap-6">
-          <div className="flex items-center gap-2.5">
-            <span className="w-2 h-2 rounded-full bg-red-500 animate-pulse" />
-            <span className="text-sm font-mono tabular-nums text-zinc-200">
-              {formatTime(elapsed)}
+          <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-red-500/10 border border-red-500/20">
+            <span className="w-1.5 h-1.5 rounded-full bg-red-500 animate-pulse" />
+            <span className="text-xs font-medium text-red-400 tabular-nums">
+              REC · {formatTime(elapsed)}
             </span>
           </div>
           <button
@@ -168,16 +168,24 @@ export default function App(): JSX.Element {
           </div>
           <div>
             <p className="text-sm font-medium text-white">Saved to Downloads</p>
-            <p className="font-mono text-[11px] text-zinc-500 break-all max-w-[260px] leading-relaxed mt-1">
-              {savedPath}
+            <p className="font-mono text-[11px] text-zinc-500 max-w-[260px] leading-relaxed mt-1">
+              {savedPath.split('/').pop()}
             </p>
           </div>
-          <button
-            onClick={() => { setSavedPath(''); loadSources() }}
-            className="px-4 py-2 bg-zinc-800 hover:bg-zinc-700 rounded-lg text-xs font-medium transition-colors"
-          >
-            New Recording
-          </button>
+          <div className="flex gap-2">
+            <button
+              onClick={() => { setSavedPath(''); loadSources() }}
+              className="px-4 py-2 border border-zinc-700 text-zinc-300 hover:bg-zinc-800 rounded-xl text-xs font-medium transition-colors"
+            >
+              New Recording
+            </button>
+            <button
+              onClick={() => window.electronAPI.showInFinder(savedPath)}
+              className="px-4 py-2 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl text-xs font-medium transition-colors"
+            >
+              Open in Finder
+            </button>
+          </div>
         </div>
       )}
 

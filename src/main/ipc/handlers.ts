@@ -1,4 +1,4 @@
-import { ipcMain, desktopCapturer, systemPreferences } from 'electron'
+import { ipcMain, desktopCapturer, systemPreferences, shell } from 'electron'
 import { createWriteStream, WriteStream } from 'fs'
 import { join } from 'path'
 import { tmpdir } from 'os'
@@ -64,4 +64,9 @@ export function registerRecordingHandlers(): void {
   ipcMain.handle('recording:transcode', (_event, opts: TranscodeOptions) =>
     transcode(opts)
   )
+
+  // Fire-and-forget — opens the file's parent folder with the file selected
+  ipcMain.on('shell:show-in-folder', (_event, filePath: string) => {
+    shell.showItemInFolder(filePath)
+  })
 }

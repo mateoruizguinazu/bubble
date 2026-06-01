@@ -17,4 +17,7 @@ contextBridge.exposeInMainWorld('electronAPI', {
 
   setSessionActive: (active: boolean): void =>
     ipcRenderer.send('session:active', active),
+
+  showInFinder: (filePath: string): void =>
+    ipcRenderer.send('shell:show-in-folder', filePath),
 })

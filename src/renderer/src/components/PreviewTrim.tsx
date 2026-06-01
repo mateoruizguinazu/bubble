@@ -11,7 +11,7 @@ interface PreviewTrimProps {
 
 function ErrorBanner({ message }: { message: string }): JSX.Element {
   return (
-    <div className="flex items-start gap-2 px-3 py-2.5 rounded-lg bg-red-500/10 border border-red-500/20 flex-shrink-0">
+    <div className="flex items-start gap-2 px-3 py-2.5 rounded-xl bg-red-500/10 border border-red-500/20 flex-shrink-0">
       <svg
         className="w-3.5 h-3.5 text-red-400 mt-0.5 flex-shrink-0"
         viewBox="0 0 20 20"
@@ -93,10 +93,10 @@ export default function PreviewTrim({
             }
           }
         }}
-        className="w-full rounded-lg bg-zinc-900 max-h-48 flex-shrink-0"
+        className="w-full rounded-xl bg-zinc-900 max-h-48 flex-shrink-0"
       />
 
-      <div className="flex flex-col gap-2 flex-shrink-0">
+      <div className="flex flex-col gap-2 flex-shrink-0 bg-zinc-900 rounded-xl p-3">
         <div className="flex items-center justify-between">
           <span className="text-xs font-medium uppercase tracking-widest text-zinc-600">Trim</span>
           <span className="text-xs font-mono text-zinc-500">
@@ -113,7 +113,7 @@ export default function PreviewTrim({
               step={0.1}
               value={trimStart}
               onChange={(e) => setTrimStart(parseFloat(e.target.value) || 0)}
-              className="bg-zinc-900 border border-zinc-700 focus:border-zinc-400 focus:ring-1 focus:ring-zinc-400/20 rounded-lg px-2 py-1.5 text-xs font-mono text-zinc-200 w-full outline-none transition-all"
+              className="bg-zinc-950 border border-zinc-700 focus:border-zinc-400 focus:ring-1 focus:ring-zinc-400/20 rounded-lg px-2 py-1.5 text-xs font-mono text-zinc-200 w-full outline-none transition-all"
             />
           </label>
           <label className="flex flex-col gap-1">
@@ -125,7 +125,7 @@ export default function PreviewTrim({
               step={0.1}
               value={trimEnd}
               onChange={(e) => setTrimEnd(parseFloat(e.target.value) || displayDuration)}
-              className="bg-zinc-900 border border-zinc-700 focus:border-zinc-400 focus:ring-1 focus:ring-zinc-400/20 rounded-lg px-2 py-1.5 text-xs font-mono text-zinc-200 w-full outline-none transition-all"
+              className="bg-zinc-950 border border-zinc-700 focus:border-zinc-400 focus:ring-1 focus:ring-zinc-400/20 rounded-lg px-2 py-1.5 text-xs font-mono text-zinc-200 w-full outline-none transition-all"
             />
           </label>
         </div>
@@ -136,7 +136,7 @@ export default function PreviewTrim({
       <button
         onClick={handleSave}
         disabled={isDisabled}
-        className="mt-auto px-6 py-2.5 bg-emerald-600 hover:bg-emerald-500 active:bg-emerald-700 disabled:bg-zinc-800 disabled:text-zinc-600 rounded-lg text-sm font-medium transition-colors flex-shrink-0"
+        className="mt-auto px-6 py-2.5 bg-emerald-600 hover:bg-emerald-500 active:bg-emerald-700 disabled:bg-zinc-800 disabled:text-zinc-600 rounded-xl text-sm font-medium transition-colors flex-shrink-0"
       >
         Save & Compress
       </button>

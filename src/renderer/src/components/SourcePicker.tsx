@@ -10,7 +10,7 @@ interface SourcePickerProps {
 
 function ErrorBanner({ message }: { message: string }): JSX.Element {
   return (
-    <div className="flex items-start gap-2 px-3 py-2.5 rounded-lg bg-red-500/10 border border-red-500/20 flex-shrink-0">
+    <div className="flex items-start gap-2 px-3 py-2.5 rounded-xl bg-red-500/10 border border-red-500/20 flex-shrink-0">
       <svg
         className="w-3.5 h-3.5 text-red-400 mt-0.5 flex-shrink-0"
         viewBox="0 0 20 20"
@@ -59,7 +59,7 @@ export default function SourcePicker({
               <button
                 key={source.id}
                 onClick={() => onSelect(source)}
-                className="flex flex-col rounded-lg border border-zinc-800 hover:border-zinc-600 hover:bg-zinc-900/50 active:scale-[0.98] overflow-hidden transition-all text-left"
+                className="flex flex-col rounded-xl border border-zinc-800 hover:border-zinc-600 hover:bg-zinc-900/50 active:scale-[0.98] overflow-hidden transition-all text-left"
               >
                 <img
                   src={source.thumbnailDataUrl}
@@ -81,7 +81,7 @@ export default function SourcePicker({
                 <button
                   key={source.id}
                   onClick={() => onSelect(source)}
-                  className="flex flex-col rounded-lg border border-zinc-800 hover:border-zinc-600 hover:bg-zinc-900/50 active:scale-[0.98] overflow-hidden transition-all text-left"
+                  className="flex flex-col rounded-xl border border-zinc-800 hover:border-zinc-600 hover:bg-zinc-900/50 active:scale-[0.98] overflow-hidden transition-all text-left"
                 >
                   <img
                     src={source.thumbnailDataUrl}

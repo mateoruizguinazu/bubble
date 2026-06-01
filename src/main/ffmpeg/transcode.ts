@@ -18,7 +18,11 @@ function resolveFFmpegPath(): string {
 }
 
 export async function transcode({ inputPath, startTime, endTime }: TranscodeOptions): Promise<string> {
-  const mp4Path = join(app.getPath('downloads'), `bubble-${Date.now()}.mp4`)
+  const now = new Date()
+  const pad = (n: number): string => String(n).padStart(2, '0')
+  const date = `${now.getFullYear()}-${pad(now.getMonth() + 1)}-${pad(now.getDate())}`
+  const time = `${pad(now.getHours())}.${pad(now.getMinutes())}.${pad(now.getSeconds())}`
+  const mp4Path = join(app.getPath('downloads'), `Bubble Recording - ${date} at ${time}.mp4`)
 
   await new Promise<void>((resolve, reject) => {
     // Trim flags are placed as OUTPUT options for frame-accurate cutting.

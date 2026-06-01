@@ -45,10 +45,8 @@ function buildTrayMenu(): Menu {
       label: 'Launch at Login',
       type: 'checkbox',
       checked: loginEnabled,
-      click: () => {
-        app.setLoginItemSettings({ openAtLogin: !loginEnabled, openAsHidden: true })
-        tray?.setContextMenu(buildTrayMenu())
-      },
+      // Menu is rebuilt fresh on every right-click, so no manual refresh needed
+      click: () => app.setLoginItemSettings({ openAtLogin: !loginEnabled, openAsHidden: true }),
     },
     { type: 'separator' },
     { label: 'Quit Bubble', click: () => app.quit() },
@@ -74,7 +72,6 @@ app.whenReady().then(() => {
 
   tray = new Tray(createTrayIcon())
   tray.setToolTip('Bubble')
-  tray.setContextMenu(buildTrayMenu())
 
   // Left-click: toggle the control panel
   tray.on('click', () => {
@@ -87,6 +84,9 @@ app.whenReady().then(() => {
       controlWindow.focus()
     }
   })
+
+  // Right-click: context menu (rebuilt fresh each time to reflect latest login-item state)
+  tray.on('right-click', () => tray?.popUpContextMenu(buildTrayMenu()))
 
   // Auto-hide when the panel loses focus — but never during an active session
   // (recording, preview, or compression) so the window can't vanish mid-clip.

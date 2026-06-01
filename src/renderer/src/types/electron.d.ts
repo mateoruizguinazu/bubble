@@ -17,6 +17,7 @@ export interface ElectronAPI {
   stopRecording: () => Promise<string>
   transcodeRecording: (opts: TranscodeOptions) => Promise<string>
   setSessionActive: (active: boolean) => void
+  showInFinder: (filePath: string) => void
 }
 
 declare global {
