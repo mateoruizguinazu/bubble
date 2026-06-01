@@ -16,6 +16,7 @@ export interface ElectronAPI {
   sendChunk: (chunk: ArrayBuffer) => void
   stopRecording: () => Promise<string>
   transcodeRecording: (opts: TranscodeOptions) => Promise<string>
+  setSessionActive: (active: boolean) => void
 }
 
 declare global {

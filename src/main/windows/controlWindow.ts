@@ -7,16 +7,15 @@ export function createControlWindow(): BrowserWindow {
     width: 360,
     height: 560,
     show: false,
+    frame: false,
     resizable: false,
-    titleBarStyle: 'hiddenInset',
+    skipTaskbar: true,
     webPreferences: {
       preload: join(__dirname, '../preload/index.js'),
       sandbox: false,
-      contextIsolation: true
-    }
+      contextIsolation: true,
+    },
   })
-
-  win.on('ready-to-show', () => win.show())
 
   win.webContents.setWindowOpenHandler(({ url }) => {
     shell.openExternal(url)

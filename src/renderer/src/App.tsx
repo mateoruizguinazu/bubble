@@ -41,6 +41,7 @@ export default function App(): JSX.Element {
   const loadSources = async (): Promise<void> => {
     // Always wipe previous session state before re-entering the source picker
     // so a failed/abandoned recording never leaves stale paths or locked UI.
+    window.electronAPI.setSessionActive(false)
     setTempWebmPath('')
     setTrimStart(0)
     setTrimEnd(0)
@@ -137,6 +138,7 @@ export default function App(): JSX.Element {
       setElapsed(0)
       elapsedRef.current = 0
       timerRef.current = setInterval(() => setElapsed((s) => { elapsedRef.current = s + 1; return s + 1 }), 1000)
+      window.electronAPI.setSessionActive(true)
     } catch (err) {
       releaseStreams()
       setError(err instanceof Error ? err.message : 'Failed to start capture')
@@ -156,6 +158,7 @@ export default function App(): JSX.Element {
       if (clampedStart > 0) opts.startTime = clampedStart
       if (clampedEnd < effectiveDuration) opts.endTime = clampedEnd
       const mp4Path = await window.electronAPI.transcodeRecording(opts)
+      window.electronAPI.setSessionActive(false)
       setSavedPath(mp4Path)
       setStatus('done')
     } catch (err) {
@@ -180,8 +183,7 @@ export default function App(): JSX.Element {
       {/* ── Sources ─────────────────────────────────────────── */}
       {status === 'sources' && (
         <div className="flex flex-col h-full overflow-hidden px-4 pt-3 pb-4 gap-3">
-          {/* pl-20: push past the macOS traffic-light buttons (~76 px) in hiddenInset mode */}
-          <div className="flex items-center justify-between flex-shrink-0 pl-20">
+          <div className="flex items-center justify-between flex-shrink-0">
             <h1 className="text-sm font-semibold">Choose a source</h1>
             <button
               onClick={loadSources}
@@ -279,8 +281,7 @@ export default function App(): JSX.Element {
       {/* ── Preview & Trim ──────────────────────────────────── */}
       {status === 'previewing' && (
         <div className="flex flex-col h-full overflow-hidden px-4 pt-3 pb-4 gap-3">
-          {/* pl-20: push past the macOS traffic-light buttons (~76 px) in hiddenInset mode */}
-          <div className="flex items-center justify-between flex-shrink-0 pl-20">
+          <div className="flex items-center justify-between flex-shrink-0">
             <h2 className="text-sm font-semibold">Preview & Trim</h2>
             <button
               onClick={loadSources}

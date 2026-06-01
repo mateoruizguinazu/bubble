@@ -6,7 +6,8 @@
   "scripts": {
     "dev": "electron-vite dev",
     "build": "electron-vite build",
-    "preview": "electron-vite preview"
+    "preview": "electron-vite preview",
+    "dist": "electron-vite build && electron-builder --mac"
   },
   "dependencies": {
     "@electron-toolkit/utils": "^3.0.0",
@@ -33,8 +34,11 @@
     "appId": "com.bubble.recorder",
     "productName": "Bubble",
     "mac": {
-      "target": "dmg",
-      "arch": ["arm64", "x64"]
+      "category": "public.app-category.productivity",
+      "target": [
+        { "target": "dmg", "arch": ["arm64", "x64"] },
+        { "target": "dir", "arch": ["arm64", "x64"] }
+      ]
     },
     "asarUnpack": [
       "node_modules/ffmpeg-static/**/*"

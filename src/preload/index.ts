@@ -14,4 +14,7 @@ contextBridge.exposeInMainWorld('electronAPI', {
 
   transcodeRecording: (opts: { inputPath: string; startTime?: number; endTime?: number }): Promise<string> =>
     ipcRenderer.invoke('recording:transcode', opts),
+
+  setSessionActive: (active: boolean): void =>
+    ipcRenderer.send('session:active', active),
 })
