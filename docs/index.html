@@ -1,0 +1,341 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Bubble — Local-first screen recorder for macOS</title>
+  <meta name="description" content="Record your screen and webcam, trim the clip, compress to H.264. No accounts. No cloud. No subscription." />
+  <meta property="og:title" content="Bubble — Local-first screen recorder for macOS" />
+  <meta property="og:description" content="Free, open-source Loom alternative. Everything stays on your machine." />
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['-apple-system', 'BlinkMacSystemFont', 'SF Pro Display', 'Segoe UI', 'sans-serif'],
+            mono: ['SF Mono', 'Fira Code', 'monospace'],
+          },
+        }
+      }
+    }
+  </script>
+  <style>
+    body { background-color: #09090b; }
+
+    .glow-orange {
+      box-shadow: 0 0 80px -10px rgba(234, 88, 12, 0.35);
+    }
+    .glow-sm {
+      box-shadow: 0 0 24px -4px rgba(234, 88, 12, 0.4);
+    }
+    .glass {
+      background: rgba(255,255,255,0.04);
+      backdrop-filter: blur(12px);
+      border: 1px solid rgba(255,255,255,0.08);
+    }
+    .bubble-ring {
+      box-shadow:
+        0 0 0 1px rgba(255,255,255,0.18),
+        inset 0 0 40px rgba(0,0,0,0.5);
+    }
+    .gradient-text {
+      background: linear-gradient(135deg, #fb923c 0%, #ea580c 60%, #c2410c 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    .hero-grid {
+      background-image:
+        linear-gradient(rgba(234,88,12,0.04) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(234,88,12,0.04) 1px, transparent 1px);
+      background-size: 48px 48px;
+    }
+    /* Crescent gloss on the bubble */
+    .crescent {
+      position: absolute;
+      top: 8px; right: 14px;
+      width: 28px; height: 12px;
+      border-radius: 50%;
+      background: linear-gradient(to bottom, rgba(255,255,255,0.55), transparent);
+      transform: rotate(15deg);
+      filter: blur(0.5px);
+      pointer-events: none;
+    }
+    .crescent-dot {
+      position: absolute;
+      top: 10px; right: 28px;
+      width: 6px; height: 6px;
+      border-radius: 50%;
+      background: rgba(255,255,255,0.7);
+      filter: blur(0.2px);
+      pointer-events: none;
+    }
+    .crescent-bottom {
+      position: absolute;
+      bottom: 6px; left: 12px;
+      width: 20px; height: 8px;
+      border-radius: 50%;
+      background: rgba(255,255,255,0.08);
+      filter: blur(1px);
+      pointer-events: none;
+    }
+  </style>
+</head>
+<body class="text-white font-sans antialiased">
+
+  <!-- Nav -->
+  <nav class="fixed top-0 inset-x-0 z-50 border-b border-white/5 bg-zinc-950/80 backdrop-blur-md">
+    <div class="max-w-5xl mx-auto px-6 h-14 flex items-center justify-between">
+      <div class="flex items-center gap-2.5">
+        <div class="w-6 h-6 rounded-full bg-zinc-900 ring-1 ring-white/20 flex-shrink-0 relative overflow-hidden">
+          <div class="absolute inset-0 bg-zinc-950"></div>
+          <div class="crescent" style="top:3px;right:5px;width:10px;height:5px;"></div>
+        </div>
+        <span class="text-sm font-semibold tracking-tight">Bubble</span>
+      </div>
+      <div class="flex items-center gap-6">
+        <a href="#features" class="text-xs text-zinc-400 hover:text-white transition-colors hidden sm:block">Features</a>
+        <a href="#how-it-works" class="text-xs text-zinc-400 hover:text-white transition-colors hidden sm:block">How it works</a>
+        <a href="https://github.com/mateoruizguinazu/bubble" target="_blank" rel="noopener"
+           class="flex items-center gap-1.5 text-xs text-zinc-400 hover:text-white transition-colors">
+          <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
+            <path d="M12 2C6.477 2 2 6.484 2 12.017c0 4.425 2.865 8.18 6.839 9.504.5.092.682-.217.682-.483 0-.237-.008-.868-.013-1.703-2.782.605-3.369-1.343-3.369-1.343-.454-1.158-1.11-1.466-1.11-1.466-.908-.62.069-.608.069-.608 1.003.07 1.531 1.032 1.531 1.032.892 1.53 2.341 1.088 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.113-4.555-4.951 0-1.093.39-1.988 1.029-2.688-.103-.253-.446-1.272.098-2.65 0 0 .84-.27 2.75 1.026A9.564 9.564 0 0112 6.844c.85.004 1.705.115 2.504.337 1.909-1.296 2.747-1.027 2.747-1.027.546 1.379.202 2.398.1 2.651.64.7 1.028 1.595 1.028 2.688 0 3.848-2.339 4.695-4.566 4.943.359.309.678.92.678 1.855 0 1.338-.012 2.419-.012 2.749 0 .268.18.58.688.482A10.019 10.019 0 0022 12.017C22 6.484 17.522 2 12 2z"/>
+          </svg>
+          GitHub
+        </a>
+      </div>
+    </div>
+  </nav>
+
+  <!-- Hero -->
+  <section class="hero-grid min-h-screen flex flex-col items-center justify-center px-6 pt-24 pb-20 relative overflow-hidden">
+    <!-- Background glow -->
+    <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] rounded-full bg-orange-600/8 blur-[120px] pointer-events-none"></div>
+
+    <!-- Bubble preview -->
+    <div class="relative mb-10">
+      <div class="w-32 h-32 rounded-full bg-zinc-950 bubble-ring glow-orange relative overflow-hidden">
+        <!-- Simulated camera feed -->
+        <div class="absolute inset-0 bg-gradient-to-br from-zinc-800 to-zinc-950"></div>
+        <!-- Face silhouette -->
+        <div class="absolute bottom-0 left-1/2 -translate-x-1/2 w-16 h-20 bg-zinc-700/40 rounded-t-full"></div>
+        <div class="absolute top-7 left-1/2 -translate-x-1/2 w-8 h-8 bg-zinc-600/50 rounded-full"></div>
+        <div class="crescent"></div>
+        <div class="crescent-dot"></div>
+        <div class="crescent-bottom"></div>
+        <!-- Drag overlay hint -->
+        <div class="absolute inset-0 rounded-full"></div>
+      </div>
+      <!-- Recording dot -->
+      <span class="absolute -top-1 -right-1 w-4 h-4 rounded-full bg-red-500 ring-2 ring-zinc-950 flex items-center justify-center">
+        <span class="w-2 h-2 rounded-full bg-red-300 animate-ping absolute"></span>
+        <span class="w-1.5 h-1.5 rounded-full bg-red-200 relative"></span>
+      </span>
+    </div>
+
+    <div class="text-center max-w-2xl relative z-10">
+      <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-orange-500/10 border border-orange-500/20 text-orange-400 text-xs font-medium mb-6">
+        <span class="w-1.5 h-1.5 rounded-full bg-orange-400"></span>
+        Free &amp; open source
+      </div>
+
+      <h1 class="text-5xl sm:text-6xl font-bold tracking-tight leading-[1.08] mb-5">
+        Record. Trim.<br />
+        <span class="gradient-text">Share.</span>
+      </h1>
+
+      <p class="text-lg text-zinc-400 leading-relaxed mb-10 max-w-xl mx-auto">
+        Screen recorder with a floating webcam bubble for macOS.
+        No accounts, no cloud, no subscription — everything stays on your machine.
+      </p>
+
+      <div class="flex flex-col sm:flex-row items-center justify-center gap-3">
+        <a href="https://github.com/mateoruizguinazu/bubble/releases/latest"
+           class="glow-sm flex items-center gap-2.5 px-7 py-3 bg-orange-600 hover:bg-orange-500 active:bg-orange-700 rounded-xl text-sm font-semibold transition-colors w-full sm:w-auto justify-center">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+          </svg>
+          Download for macOS
+        </a>
+        <a href="https://github.com/mateoruizguinazu/bubble"
+           class="flex items-center gap-2 px-7 py-3 glass rounded-xl text-sm font-medium text-zinc-300 hover:text-white transition-colors w-full sm:w-auto justify-center">
+          View on GitHub
+          <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M17 8l4 4m0 0l-4 4m4-4H3" />
+          </svg>
+        </a>
+      </div>
+
+      <p class="mt-4 text-xs text-zinc-600">macOS 12 Monterey or later · arm64 &amp; x64</p>
+    </div>
+
+    <!-- Scroll hint -->
+    <div class="absolute bottom-8 left-1/2 -translate-x-1/2 flex flex-col items-center gap-1.5 opacity-30">
+      <span class="text-[10px] uppercase tracking-widest text-zinc-500">Scroll</span>
+      <svg class="w-3 h-3 text-zinc-500 animate-bounce" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7" />
+      </svg>
+    </div>
+  </section>
+
+  <!-- Features -->
+  <section id="features" class="py-24 px-6">
+    <div class="max-w-5xl mx-auto">
+      <div class="text-center mb-14">
+        <h2 class="text-3xl font-bold tracking-tight mb-3">Everything you need. Nothing you don't.</h2>
+        <p class="text-zinc-500 text-sm">Built for developers and designers who need to ship fast feedback.</p>
+      </div>
+
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+
+        <!-- Feature card -->
+        <div class="glass rounded-2xl p-5">
+          <div class="w-9 h-9 rounded-xl bg-orange-500/10 flex items-center justify-center mb-4">
+            <svg class="w-4.5 h-4.5 text-orange-400" style="width:18px;height:18px" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24">
+              <circle cx="12" cy="12" r="10"/><circle cx="12" cy="10" r="3"/><path d="M7 20.662V19a2 2 0 012-2h6a2 2 0 012 2v1.662"/>
+            </svg>
+          </div>
+          <h3 class="text-sm font-semibold mb-1.5">Floating webcam bubble</h3>
+          <p class="text-xs text-zinc-500 leading-relaxed">Transparent, always-on-top circle visible across all Spaces and full-screen apps. Drag it anywhere.</p>
+        </div>
+
+        <div class="glass rounded-2xl p-5">
+          <div class="w-9 h-9 rounded-xl bg-orange-500/10 flex items-center justify-center mb-4">
+            <svg class="w-4.5 h-4.5 text-orange-400" style="width:18px;height:18px" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24">
+              <rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8m-4-4v4"/>
+            </svg>
+          </div>
+          <h3 class="text-sm font-semibold mb-1.5">Screen &amp; window capture</h3>
+          <p class="text-xs text-zinc-500 leading-relaxed">Live thumbnail picker for any display or app window. Your last selection is remembered.</p>
+        </div>
+
+        <div class="glass rounded-2xl p-5">
+          <div class="w-9 h-9 rounded-xl bg-orange-500/10 flex items-center justify-center mb-4">
+            <svg class="w-4.5 h-4.5 text-orange-400" style="width:18px;height:18px" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24">
+              <path d="M9 19V6l12-3v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/>
+            </svg>
+          </div>
+          <h3 class="text-sm font-semibold mb-1.5">Camera &amp; mic control</h3>
+          <p class="text-xs text-zinc-500 leading-relaxed">Pick a specific device, use system default, or go silent. Choices persist between sessions.</p>
+        </div>
+
+        <div class="glass rounded-2xl p-5">
+          <div class="w-9 h-9 rounded-xl bg-orange-500/10 flex items-center justify-center mb-4">
+            <svg class="w-4.5 h-4.5 text-orange-400" style="width:18px;height:18px" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24">
+              <path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/>
+            </svg>
+          </div>
+          <h3 class="text-sm font-semibold mb-1.5">Quality presets</h3>
+          <p class="text-xs text-zinc-500 leading-relaxed">Choose at export time — High (CRF 16), Medium (CRF 22), or Low (CRF 28). FFmpeg H.264 with +faststart.</p>
+        </div>
+
+        <div class="glass rounded-2xl p-5">
+          <div class="w-9 h-9 rounded-xl bg-orange-500/10 flex items-center justify-center mb-4">
+            <svg class="w-4.5 h-4.5 text-orange-400" style="width:18px;height:18px" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24">
+              <polygon points="5 3 19 12 5 21 5 3"/>
+            </svg>
+          </div>
+          <h3 class="text-sm font-semibold mb-1.5">Preview &amp; trim</h3>
+          <p class="text-xs text-zinc-500 leading-relaxed">Dual-range scrubber with live timestamps. Fine-tune start and end to the decimal second before exporting.</p>
+        </div>
+
+        <div class="glass rounded-2xl p-5">
+          <div class="w-9 h-9 rounded-xl bg-orange-500/10 flex items-center justify-center mb-4">
+            <svg class="w-4.5 h-4.5 text-orange-400" style="width:18px;height:18px" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24">
+              <rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0110 0v4"/>
+            </svg>
+          </div>
+          <h3 class="text-sm font-semibold mb-1.5">Fully local &amp; private</h3>
+          <p class="text-xs text-zinc-500 leading-relaxed">Nothing leaves your machine. No telemetry, no servers, no sign-up. Your recordings are yours.</p>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+  <!-- How it works -->
+  <section id="how-it-works" class="py-24 px-6 border-t border-white/5">
+    <div class="max-w-3xl mx-auto">
+      <div class="text-center mb-14">
+        <h2 class="text-3xl font-bold tracking-tight mb-3">Record in three steps</h2>
+        <p class="text-zinc-500 text-sm">Sits in your menu bar. Ready when you are.</p>
+      </div>
+
+      <div class="flex flex-col gap-px">
+        <!-- Step -->
+        <div class="flex gap-6 p-6 glass rounded-t-2xl">
+          <div class="flex-shrink-0 w-8 h-8 rounded-full bg-orange-600 flex items-center justify-center text-sm font-bold">1</div>
+          <div>
+            <h3 class="text-sm font-semibold mb-1">Pick your source</h3>
+            <p class="text-xs text-zinc-500 leading-relaxed">Click the tray icon. Select a screen or app window from live thumbnails. Choose your camera and mic. Hit <span class="font-mono bg-zinc-800 px-1.5 py-0.5 rounded text-zinc-300">Start Recording</span>.</p>
+          </div>
+        </div>
+        <div class="flex gap-6 p-6 glass">
+          <div class="flex-shrink-0 w-8 h-8 rounded-full bg-orange-600 flex items-center justify-center text-sm font-bold">2</div>
+          <div>
+            <h3 class="text-sm font-semibold mb-1">Record &amp; stop</h3>
+            <p class="text-xs text-zinc-500 leading-relaxed">Your floating webcam bubble appears. Record for as long as you need — chunks stream directly to disk so memory stays flat. Click <span class="font-mono bg-zinc-800 px-1.5 py-0.5 rounded text-zinc-300">Stop Recording</span> when done.</p>
+          </div>
+        </div>
+        <div class="flex gap-6 p-6 glass rounded-b-2xl">
+          <div class="flex-shrink-0 w-8 h-8 rounded-full bg-orange-600 flex items-center justify-center text-sm font-bold">3</div>
+          <div>
+            <h3 class="text-sm font-semibold mb-1">Trim &amp; export</h3>
+            <p class="text-xs text-zinc-500 leading-relaxed">Scrub the preview, drag the trim handles to cut the clip, pick a quality preset, and hit <span class="font-mono bg-zinc-800 px-1.5 py-0.5 rounded text-zinc-300">Save &amp; Compress</span>. MP4 lands in your chosen folder.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Open source CTA -->
+  <section class="py-24 px-6 border-t border-white/5">
+    <div class="max-w-3xl mx-auto text-center">
+      <div class="inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-orange-500/10 mb-6">
+        <svg class="w-6 h-6 text-orange-400" fill="currentColor" viewBox="0 0 24 24">
+          <path d="M12 2C6.477 2 2 6.484 2 12.017c0 4.425 2.865 8.18 6.839 9.504.5.092.682-.217.682-.483 0-.237-.008-.868-.013-1.703-2.782.605-3.369-1.343-3.369-1.343-.454-1.158-1.11-1.466-1.11-1.466-.908-.62.069-.608.069-.608 1.003.07 1.531 1.032 1.531 1.032.892 1.53 2.341 1.088 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.113-4.555-4.951 0-1.093.39-1.988 1.029-2.688-.103-.253-.446-1.272.098-2.65 0 0 .84-.27 2.75 1.026A9.564 9.564 0 0112 6.844c.85.004 1.705.115 2.504.337 1.909-1.296 2.747-1.027 2.747-1.027.546 1.379.202 2.398.1 2.651.64.7 1.028 1.595 1.028 2.688 0 3.848-2.339 4.695-4.566 4.943.359.309.678.92.678 1.855 0 1.338-.012 2.419-.012 2.749 0 .268.18.58.688.482A10.019 10.019 0 0022 12.017C22 6.484 17.522 2 12 2z"/>
+        </svg>
+      </div>
+      <h2 class="text-3xl font-bold tracking-tight mb-4">Free &amp; open source, forever</h2>
+      <p class="text-zinc-400 leading-relaxed mb-8 max-w-xl mx-auto">
+        Bubble is MIT licensed. Read the code, fork it, contribute to it.
+        Built with Electron, React, Tailwind CSS, and FFmpeg.
+      </p>
+      <div class="flex flex-col sm:flex-row items-center justify-center gap-3">
+        <a href="https://github.com/mateoruizguinazu/bubble/releases/latest"
+           class="glow-sm flex items-center gap-2.5 px-7 py-3 bg-orange-600 hover:bg-orange-500 rounded-xl text-sm font-semibold transition-colors w-full sm:w-auto justify-center">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+          </svg>
+          Download for macOS
+        </a>
+        <a href="https://github.com/mateoruizguinazu/bubble"
+           class="flex items-center gap-2 px-7 py-3 glass rounded-xl text-sm font-medium text-zinc-300 hover:text-white transition-colors w-full sm:w-auto justify-center">
+          Star on GitHub
+          <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z"/>
+          </svg>
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <!-- Footer -->
+  <footer class="border-t border-white/5 py-8 px-6">
+    <div class="max-w-5xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-4">
+      <div class="flex items-center gap-2">
+        <div class="w-5 h-5 rounded-full bg-zinc-900 ring-1 ring-white/15"></div>
+        <span class="text-xs text-zinc-500">Bubble</span>
+      </div>
+      <div class="flex items-center gap-6">
+        <a href="https://github.com/mateoruizguinazu/bubble" class="text-xs text-zinc-600 hover:text-zinc-400 transition-colors">GitHub</a>
+        <a href="https://github.com/mateoruizguinazu/bubble/releases" class="text-xs text-zinc-600 hover:text-zinc-400 transition-colors">Releases</a>
+        <a href="https://github.com/mateoruizguinazu/bubble/issues" class="text-xs text-zinc-600 hover:text-zinc-400 transition-colors">Issues</a>
+        <a href="https://github.com/mateoruizguinazu/bubble/blob/main/LICENSE" class="text-xs text-zinc-600 hover:text-zinc-400 transition-colors">MIT License</a>
+      </div>
+    </div>
+  </footer>
+
+</body>
+</html>

@@ -9,11 +9,11 @@
 <p align="center">
   Record your screen and webcam, trim the clip, compress to H.264. No accounts. No cloud. No subscription.
   <br />
-  <a href="https://github.com/mateoruizguinazu/bubble">Website</a>
-  ·
-  <a href="https://github.com/mateoruizguinazu/bubble/issues">Issues</a>
+  <a href="https://mateoruizguinazu.github.io/bubble/">Website</a>
   ·
   <a href="https://github.com/mateoruizguinazu/bubble/releases">Releases</a>
+  ·
+  <a href="https://github.com/mateoruizguinazu/bubble/issues">Issues</a>
 </p>
 
 <p align="center">
@@ -118,22 +118,12 @@ For notarised distribution you'll need an Apple Developer certificate — see [e
 
 ---
 
-## Star history
-
-<a href="https://star-history.com/#mateoruizguinazu/bubble&Date">
-  <picture>
-    <source media="(prefers-color-scheme: dark)" srcset="https://api.star-history.com/svg?repos=mateoruizguinazu/bubble&type=Date&theme=dark" />
-    <source media="(prefers-color-scheme: light)" srcset="https://api.star-history.com/svg?repos=mateoruizguinazu/bubble&type=Date" />
-    <img alt="Star History Chart" src="https://api.star-history.com/svg?repos=mateoruizguinazu/bubble&type=Date" width="100%" />
-  </picture>
-</a>
-
----
-
 ## Contributors
 
+Contributions of any size are welcome — bug reports, feature ideas, or code.
+
 <a href="https://github.com/mateoruizguinazu/bubble/graphs/contributors">
-  <img src="https://contrib.rocks/image?repo=mateoruizguinazu/bubble" width="100%" />
+  <img src="https://contrib.rocks/image?repo=mateoruizguinazu/bubble&max=48&columns=12" width="auto" />
 </a>
 
 ---
