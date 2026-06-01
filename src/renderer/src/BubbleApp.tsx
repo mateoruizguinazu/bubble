@@ -1,34 +1,52 @@
-import React, { useEffect, useRef } from 'react'
+import React, { useEffect, useRef, useState } from 'react'
 
 export default function BubbleApp(): JSX.Element {
   const videoRef = useRef<HTMLVideoElement>(null)
+  const [cameraError, setCameraError] = useState(false)
 
   useEffect(() => {
+    let activeStream: MediaStream | null = null
+
     navigator.mediaDevices
       .getUserMedia({ video: true, audio: false })
       .then((stream) => {
+        activeStream = stream
         if (videoRef.current) {
           videoRef.current.srcObject = stream
         }
       })
-      .catch(console.error)
+      .catch(() => setCameraError(true))
+
+    return () => {
+      activeStream?.getTracks().forEach((t) => t.stop())
+      const video = videoRef.current
+      if (video) video.srcObject = null
+    }
   }, [])
 
   return (
-    // relative container — the video fills the circle, the overlay sits on top
-    <div className="w-40 h-40 rounded-full overflow-hidden bg-black relative">
-      <video
-        ref={videoRef}
-        autoPlay
-        muted
-        playsInline
-        className="w-full h-full object-cover scale-x-[-1]"
-      />
+    <div className="w-40 h-40 rounded-full overflow-hidden bg-black relative ring-1 ring-white/30">
+      {cameraError ? (
+        <div className="w-full h-full flex items-center justify-center bg-zinc-900">
+          <p className="text-[10px] text-zinc-600 text-center px-4 leading-relaxed">
+            Camera unavailable
+          </p>
+        </div>
+      ) : (
+        <video
+          ref={videoRef}
+          autoPlay
+          muted
+          playsInline
+          className="w-full h-full object-cover scale-x-[-1]"
+        />
+      )}
+      {/* Glossy crescent highlight — top-right quadrant, mimics a glass bubble reflection */}
+      <div className="absolute top-1.5 right-3 w-7 h-3 rounded-full bg-gradient-to-b from-white/40 to-transparent rotate-[15deg] blur-[0.5px] pointer-events-none" />
       {/*
-        Transparent drag layer on top of the video.
-        no-drag-region on the video element would block dragging because the video
-        fills the entire circle — there is no exposed outer div edge to grab.
-        An absolute overlay with drag-region fixes this without interfering with rendering.
+        Transparent drag layer on top of everything.
+        Without this, the video element blocks all drag events since it fills the
+        entire circle and -webkit-app-region: no-drag is its default behaviour.
       */}
       <div className="absolute inset-0 rounded-full drag-region cursor-move" />
     </div>

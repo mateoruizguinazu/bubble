@@ -3,15 +3,8 @@
 @tailwind utilities;
 
 @layer utilities {
-  /* Electron window drag regions — used by BubbleApp */
+  /* Electron window drag region — used by BubbleApp's drag overlay */
   .drag-region {
     -webkit-app-region: drag;
   }
-  .no-drag-region {
-    -webkit-app-region: no-drag;
-  }
-}
-
-body {
-  background: transparent;
 }
