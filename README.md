@@ -1,170 +1,167 @@
-# Bubble
+<p align="center">
+  <a href="https://github.com/mateoruizguinazu/bubble">
+    <img src="resources/icon.icns" alt="Bubble" width="96" />
+  </a>
+</p>
 
-A free, open-source, local-first screen recorder for macOS. Record your screen and webcam together, trim the clip, and export a highly optimised H.264 MP4 directly to a folder of your choice — no accounts, no cloud, no subscription.
+<h1 align="center">Bubble — local-first screen recorder for macOS</h1>
 
-Think of it as a self-hosted Loom.
+<p align="center">
+  Record your screen and webcam, trim the clip, compress to H.264. No accounts. No cloud. No subscription.
+  <br />
+  <a href="https://github.com/mateoruizguinazu/bubble">Website</a>
+  ·
+  <a href="https://github.com/mateoruizguinazu/bubble/issues">Issues</a>
+  ·
+  <a href="https://github.com/mateoruizguinazu/bubble/releases">Releases</a>
+</p>
 
-![Bubble recorder UI](https://github.com/mateoruizguinazu/bubble/assets/placeholder.png)
+<p align="center">
+  <img src="https://img.shields.io/github/stars/mateoruizguinazu/bubble?labelColor=000000&style=for-the-badge&color=ea580c" alt="Stars" />
+  <img src="https://img.shields.io/github/forks/mateoruizguinazu/bubble?labelColor=000000&style=for-the-badge&color=ea580c" alt="Forks" />
+  <img src="https://img.shields.io/github/license/mateoruizguinazu/bubble?labelColor=000000&style=for-the-badge&color=ea580c" alt="License" />
+</p>
+
+<p align="center">
+  <img src=".github/screenshots/preview.png" alt="Bubble recorder preview" width="100%" />
+</p>
+
+---
+
+## Mission
+
+Give developers and designers a fast, free, zero-friction way to record a screen clip with their face on it — like Loom, but private, offline, and open source.
 
 ---
 
 ## Features
 
-- **Floating webcam bubble** — transparent, always-on-top circular overlay visible across all Spaces and full-screen apps; drag it anywhere
-- **Screen or window capture** — pick any display or application window from a live thumbnail picker; selection is remembered between sessions
-- **Camera control** — choose a specific camera device or turn the webcam off entirely
+- **Floating webcam bubble** — transparent, always-on-top circle visible across all Spaces and full-screen apps; drag it anywhere on screen
+- **Screen & window capture** — live thumbnail picker for any display or app window; your last selection is remembered
+- **Camera control** — choose a specific device, use the system default, or go camera-off
 - **Mic control** — choose a specific microphone, use the system default, or record silently
-- **Quality presets** — choose compression at export time: High (CRF 16, crisp text), Medium (CRF 22, balanced), or Low (CRF 28, smallest file)
-- **Preview & trim** — dual-range scrubber to set precise start/end times before exporting
-- **Custom save path** — choose any folder; defaults to `~/Downloads`
-- **Settings persistence** — camera, mic, save path, and last-used source are remembered via `localStorage`
-- **Permission onboarding** — friendly screen-recording permission screen with a direct deep-link into System Settings
-- **FFmpeg compression** — libx264, `+faststart`, yuv420p — small files that play everywhere
-- **Fully local** — nothing leaves your machine
+- **Quality presets** — pick compression at export time: High (CRF 16, crisp text), Medium (CRF 22, balanced), Low (CRF 28, smallest file)
+- **Preview & trim** — dual-range scrubber with live timestamps; fine-tune start/end to the decimal second
+- **Custom save path** — export anywhere; defaults to `~/Downloads`
+- **Settings persistence** — camera, mic, save path, and last-used source remembered between sessions
+- **Permission onboarding** — friendly screen with a direct deep-link into macOS System Settings when access is blocked
+- **Fully local** — nothing leaves your machine; no telemetry, no servers, no sign-up
 
 ---
 
-## Requirements
+## Screenshots
 
-- macOS 12 Monterey or later (arm64 or x64)
-- Node.js 18+
-- npm 9+
+|                   Pre-flight panel                   |                  Recording + Bubble                  |
+| :--------------------------------------------------: | :--------------------------------------------------: |
+| ![](.github/screenshots/source-picker.png)           | ![](.github/screenshots/recording.png)               |
+|                   **Preview & Trim**                 |                     **Done**                         |
+| ![](.github/screenshots/preview-trim.png)            | ![](.github/screenshots/done.png)                    |
 
-> Screen recording and camera/microphone permissions are requested at runtime by macOS.
+> Screenshots coming soon — contributions welcome!
 
 ---
 
 ## Getting started
 
+### Install the app
+
+Download the latest DMG from [Releases](https://github.com/mateoruizguinazu/bubble/releases) and drag **Bubble** to your Applications folder.
+
+> macOS will prompt for Screen Recording and Camera/Microphone access on first launch.
+
+### Run from source
+
+**Prerequisites:** Node.js 18+, npm 9+
+
 ```bash
-# 1. Clone
 git clone https://github.com/mateoruizguinazu/bubble.git
 cd bubble
-
-# 2. Install dependencies
 npm install
-
-# 3. Run in development mode
 npm run dev
 ```
 
-The app opens two windows:
-- **Control window** — source picker, pre-flight settings, recording timer, preview & trim, compression progress
-- **Bubble window** — small floating webcam circle (drag it anywhere)
-
----
-
-## Build a distributable DMG
+### Build a distributable DMG
 
 ```bash
 npm run dist
 ```
 
-Compiles all sources with electron-vite and packages both arm64 and x64 DMGs via electron-builder. Output lands in `dist/`:
+Produces signed-ready arm64 + x64 DMGs in `dist/`:
 
 ```
 dist/Bubble-0.1.1-arm64.dmg   ← Apple Silicon
 dist/Bubble-0.1.1.dmg         ← Intel
 ```
 
-For a notarised, signed build you'll need an Apple Developer certificate — see [electron-builder code signing docs](https://www.electron.build/code-signing).
-
----
-
-## Project structure
-
-```
-resources/
-  trayIconTemplate.png          # 1× menu-bar icon (template image)
-  trayIconTemplate-2x.png       # 2× retina menu-bar icon
-  icon.icns                     # App icon for the DMG
-
-src/
-  main/
-    index.ts                    # App entry — tray, protocol, window lifecycle
-    windows/
-      controlWindow.ts          # 360×560 recording control panel
-      bubbleWindow.ts           # 160×160 transparent floating bubble
-    ipc/
-      handlers.ts               # IPC: desktopCapturer, WriteStream, camera config, dialogs
-    ffmpeg/
-      transcode.ts              # fluent-ffmpeg — QualityProfile CRF map, trim, savePath
-  preload/
-    index.ts                    # contextBridge for the control window
-    bubble.ts                   # contextBridge for the bubble window (camera IPC)
-  renderer/
-    index.html                  # Control window entry
-    bubble.html                 # Bubble window entry
-    src/
-      App.tsx                   # 8-state machine: loading → sources → recording → previewing → done
-      BubbleApp.tsx             # Webcam feed with live camera-config IPC + drag overlay
-      hooks/
-        useRecording.ts         # MediaRecorder + mic stream + chunk IPC
-      components/
-        SourcePicker.tsx        # Pre-flight panel: source, camera, mic, save path
-        PreviewTrim.tsx         # Dual-range trim slider + quality selector
-        PermissionScreen.tsx    # Permission onboarding with System Settings deep-link
-      types/
-        electron.d.ts           # ElectronAPI interface + QualityProfile type
-      styles/
-        index.css               # Tailwind + drag-region utility (control window)
-        bubble.css              # Isolated Tailwind for bubble window (pins 160×160 layout)
-```
+For notarised distribution you'll need an Apple Developer certificate — see [electron-builder code signing](https://www.electron.build/code-signing).
 
 ---
 
 ## How it works
 
-1. **Source picker** — `desktopCapturer.getSources` runs in the main process (Electron restriction) and returns serialised thumbnails over IPC.
-2. **Pre-flight** — user picks camera device, mic device, save path, and screen source; all choices persist to `localStorage`.
-3. **Capture** — renderer calls `getUserMedia` with `chromeMediaSource: 'desktop'` + the chosen source ID, plus an optional mic stream. Both are combined into a single `MediaStream`.
-4. **Streaming chunks** — `MediaRecorder` fires `ondataavailable` every second. Each chunk is sent immediately to the main process via `ipcRenderer.send`, which appends it to an `fs.WriteStream` targeting a temp `.webm` file. This keeps renderer memory flat for arbitrarily long recordings.
-5. **Stop & preview** — the write stream is closed and the temp path is returned to the renderer, which displays the file via a custom `local-file://` protocol with range-request support (required for the HTML5 seek bar).
-6. **Trim & compress** — user picks quality preset; FFmpeg transcodes the clip with optional `-ss`/`-t` output flags for frame-accurate trimming, encodes to H.264 at the chosen CRF, and saves to the configured folder.
-7. **Cleanup** — the temp `.webm` is deleted after a successful transcode.
+1. **Source picker** — `desktopCapturer.getSources` runs in the main process and returns serialised thumbnails over IPC.
+2. **Capture** — renderer calls `getUserMedia` with `chromeMediaSource: 'desktop'` + source ID, plus an optional mic stream, combined into a single `MediaStream`.
+3. **Streaming chunks** — `MediaRecorder` fires `ondataavailable` every second; chunks are sent via IPC and appended to an `fs.WriteStream` targeting a temp `.webm`. Renderer memory stays flat for long recordings.
+4. **Preview** — write stream closes; temp path returned to renderer and served via a custom `local-file://` protocol with range-request support for the HTML5 seek bar.
+5. **Trim & compress** — FFmpeg transcodes with optional `-ss`/`-t` for frame-accurate trimming, encodes to H.264 at the chosen CRF, and saves to the configured folder.
 
 ---
 
-## Stack
+## Built with
 
-| Layer | Technology |
-|---|---|
-| Shell | Electron 31 |
-| Build | electron-vite 2 |
-| Frontend | React 18 + Tailwind CSS 3 |
-| Video processing | fluent-ffmpeg + ffmpeg-static (bundled) |
-| Language | TypeScript 5 |
+- [Electron](https://www.electronjs.org/)
+- [electron-vite](https://electron-vite.org/)
+- [React 18](https://react.dev/)
+- [Tailwind CSS](https://tailwindcss.com/)
+- [fluent-ffmpeg](https://github.com/fluent-ffmpeg/node-fluent-ffmpeg) + [ffmpeg-static](https://github.com/eugeneware/ffmpeg-static)
+- [TypeScript 5](https://www.typescriptlang.org/)
+
+---
+
+## Star history
+
+<a href="https://star-history.com/#mateoruizguinazu/bubble&Date">
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="https://api.star-history.com/svg?repos=mateoruizguinazu/bubble&type=Date&theme=dark" />
+    <source media="(prefers-color-scheme: light)" srcset="https://api.star-history.com/svg?repos=mateoruizguinazu/bubble&type=Date" />
+    <img alt="Star History Chart" src="https://api.star-history.com/svg?repos=mateoruizguinazu/bubble&type=Date" width="100%" />
+  </picture>
+</a>
+
+---
+
+## Contributors
+
+<a href="https://github.com/mateoruizguinazu/bubble/graphs/contributors">
+  <img src="https://contrib.rocks/image?repo=mateoruizguinazu/bubble" width="100%" />
+</a>
 
 ---
 
 ## Contributing
 
-Contributions are welcome. Please open an issue before starting a large PR so we can discuss the approach.
+Contributions are welcome. Open an [issue](https://github.com/mateoruizguinazu/bubble/issues) before starting a large PR so we can discuss the approach.
 
 ```bash
-# Fork → clone → branch
 git checkout -b feat/your-feature
-
-# Make changes, then
-npm run dev   # verify it works
-
-# Push and open a PR against main
+npm run dev       # develop
+npm run dist      # verify the production build
 ```
 
-A few guidelines:
-- Keep changes focused — one feature or fix per PR
-- Don't add dependencies without discussing first
-- Test on macOS (the only supported platform)
+Guidelines:
+- One feature or fix per PR
+- Don't add dependencies without prior discussion
+- Test on macOS — the only supported platform
 
 ---
 
 ## Roadmap
 
-- [ ] Code signing + notarisation for a distributable DMG
-- [ ] System audio capture (via a virtual audio device or ScreenCaptureKit)
-- [ ] Keyboard shortcut to start/stop recording
+- [ ] Code signing + notarisation
+- [ ] System audio capture (ScreenCaptureKit)
+- [ ] Keyboard shortcut to start/stop
 - [ ] Adjustable bubble size
-- [ ] GIF export option
+- [ ] GIF export
 
 ---
 
